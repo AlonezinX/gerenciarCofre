@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gerenciador de Cofre Físico</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- SweetAlert2 -->
+  <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <h1>💰 Cofre Físico</h1>
+  <button id="toggleThemeBtn">🌙 Alternar Tema</button>
+
+  <div class="buttons">
+    <button id="prevMonthBtn">⬅️ Mês Anterior</button>
+    <button id="nextMonthBtn">➡️ Próximo Mês</button>
+  </div>
+
+  <h2 id="monthTitle"></h2>
+
+  <div class="buttons">
+    <button id="addValueBtn">➕ Adicionar Valor</button>
+    <button id="addGoalBtn">🎯 Nova Meta</button>
+    <button id="resetBtn">🗑️ Resetar Registros</button>
+    <button id="exportPDF">📄 Gerar Relatório PDF</button>
+  </div>
+
+  <div id="calendar"></div>
+
+  <div id="monthlyTotal"></div>
+  <div id="goalSection"></div>
+  <div id="log"></div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <!-- jsPDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- Moment.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,277 @@
+
+// ⚙️ Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyBm2kDHHs_tUgm8fEBYYEYfDKWB-S9algY",
+  authDomain: "cofre-5d793.firebaseapp.com",
+  projectId: "cofre-5d793",
+  storageBucket: "cofre-5d793.appspot.com",
+  messagingSenderId: "635160182641",
+  appId: "1:635160182641:web:0ef9964b2f462e720dc0d0"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+let currentMonth = moment();
+
+document.getElementById("prevMonthBtn").onclick = () => {
+  currentMonth = currentMonth.subtract(1, 'month');
+  renderCalendar();
+};
+
+document.getElementById("nextMonthBtn").onclick = () => {
+  currentMonth = currentMonth.add(1, 'month');
+  renderCalendar();
+};
+
+document.getElementById("addValueBtn").onclick = async () => {
+  const { value: valor } = await Swal.fire({
+    title: 'Digite o valor',
+    input: 'text',
+    inputPlaceholder: 'Ex: 0.50',
+    showCancelButton: true
+  });
+  if (!valor) return;
+  const parsed = parseFloat(valor.replace(",", "."));
+  if (isNaN(parsed)) {
+    Swal.fire("Erro", "Valor inválido!", "error");
+    return;
+  }
+  const today = moment().format("YYYY-MM-DD");
+  await db.collection("registros").add({
+    valor: parsed,
+    data: today,
+    timestamp: Date.now()
+  });
+  Swal.fire("Sucesso", "Valor adicionado!", "success");
+  renderCalendar();
+};
+
+document.getElementById("addGoalBtn").onclick = async () => {
+  const { value: goalName } = await Swal.fire({
+    title: 'Nome da Meta',
+    input: 'text',
+    inputPlaceholder: 'Ex: Moto',
+    showCancelButton: true
+  });
+  if (!goalName) return;
+
+  const { value: goalValue } = await Swal.fire({
+    title: 'Valor da Meta (R$)',
+    input: 'text',
+    inputPlaceholder: 'Ex: 23000',
+    showCancelButton: true
+  });
+  if (!goalValue) return;
+
+  const parsedGoal = parseFloat(goalValue.replace(",", "."));
+  if (isNaN(parsedGoal)) {
+    Swal.fire("Erro", "Valor inválido!", "error");
+    return;
+  }
+
+  await db.collection("meta").doc("metaUnica").set({
+    nome: goalName,
+    valor: parsedGoal
+  });
+  Swal.fire("Meta criada!", "", "success");
+  renderCalendar();
+};
+
+document.getElementById("resetBtn").onclick = async () => {
+  if (await Swal.fire({ title: "Confirma?", text: "Isso apagará todos os registros!", icon: "warning", showCancelButton: true })) {
+    const snapshot = await db.collection("registros").get();
+    const batch = db.batch();
+    snapshot.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    Swal.fire("Todos os registros apagados!");
+    renderCalendar();
+  }
+};
+
+document.getElementById("exportPDF").onclick = async () => {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const mesAtual = currentMonth.format("YYYY-MM");
+  const snapshot = await db.collection("registros").get();
+  let total = 0;
+  let content = `Relatório - ${mesAtual}\n\n`;
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    if (d.data.startsWith(mesAtual)) {
+      total += d.valor;
+      content += `Data: ${d.data} - R$${d.valor.toFixed(2)}\n`;
+    }
+  });
+  content += `\nTOTAL: R$${total.toFixed(2)}`;
+  doc.text(content, 10, 10);
+  doc.save(`Relatorio_${mesAtual}.pdf`);
+};
+
+async function renderCalendar() {
+  const calendar = document.getElementById("calendar");
+  calendar.innerHTML = "";
+  document.getElementById("monthTitle").textContent = currentMonth.format("MMMM YYYY");
+
+  const year = currentMonth.year();
+  const month = currentMonth.month();
+  const firstDay = moment([year, month]).day();
+  const lastDate = currentMonth.daysInMonth();
+
+  const snapshot = await db.collection("registros").get();
+  const dailyTotals = {};
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    if (!dailyTotals[d.data]) dailyTotals[d.data] = 0;
+    dailyTotals[d.data] += d.valor;
+  });
+
+  for (let i = 0; i < firstDay; i++) {
+    const empty = document.createElement("div");
+    calendar.appendChild(empty);
+  }
+
+  for (let day = 1; day <= lastDate; day++) {
+  const dateMoment = moment([year, month, day]);
+  const dateStr = dateMoment.format("YYYY-MM-DD");
+  const dayOfWeek = dateMoment.format("dddd");
+
+
+
+  const cell = document.createElement("div");
+  cell.classList.add("day");
+  if (dailyTotals[dateStr]) cell.classList.add("has-value");
+
+  // Mostra dia da semana + número
+  cell.innerHTML = `
+    <div class="day-week">${capitalize(dayOfWeek)}:</div>
+    <div class="day-number">${day}</div>
+  `;
+  if (dailyTotals[dateStr]) {
+    cell.innerHTML += `<div class="day-total">R$${dailyTotals[dateStr].toFixed(2)}</div>`;
+  }
+  cell.onclick = () => showLogs(dateStr);
+  calendar.appendChild(cell);
+}
+
+  calcularTotalMes();
+  renderGoal();
+}
+
+// Função pra capitalizar primeira letra (ex: 'segunda' -> 'Segunda')
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+
+async function renderGoal() {
+  const goalBox = document.getElementById("goalSection");
+  const metaDoc = await db.collection("meta").doc("metaUnica").get();
+  if (!metaDoc.exists) {
+    goalBox.innerHTML = "<p>Nenhuma meta definida.</p>";
+    return;
+  }
+  const meta = metaDoc.data();
+  const snapshot = await db.collection("registros").get();
+  let total = 0;
+  snapshot.forEach(doc => { total += doc.data().valor; });
+
+  const percent = Math.min((total / meta.valor) * 100, 100).toFixed(2);
+
+  goalBox.innerHTML = `
+    <h3>Meta: ${meta.nome} (R$${meta.valor.toFixed(2)})</h3>
+    <p>Progresso: ${percent}%</p>
+    <div class="goal-bar"><div class="goal-bar-inner" style="width:${percent}%;"></div></div>
+    <button onclick="deletarMeta()" style="margin-top:10px; background:#f44336;">❌ Deletar Meta</button>
+  `;
+}
+
+async function deletarMeta() {
+  if (await Swal.fire({ title: "Confirma?", text: "Deseja realmente excluir a meta?", icon: "warning", showCancelButton: true })) {
+    await db.collection("meta").doc("metaUnica").delete();
+    Swal.fire("Meta deletada!", "", "success");
+    renderCalendar();
+  }
+}
+
+async function showLogs(date) {
+  const snapshot = await db.collection("registros").where("data", "==", date).get();
+  let log = `<h3>${date}</h3>`;
+  let totalDia = 0;
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    totalDia += d.valor;
+    log += `R$${d.valor.toFixed(2)}
+      <button onclick="corrigir('${doc.id}', ${d.valor})">Corrigir</button>
+      <button onclick="excluir('${doc.id}')">Excluir</button><br>`;
+  });
+  log += `<p>Total do dia: R$${totalDia.toFixed(2)}</p>`;
+  document.getElementById("log").innerHTML = log;
+}
+
+async function calcularTotalMes() {
+  const mesAtual = currentMonth.format("YYYY-MM");
+  const snapshot = await db.collection("registros").get();
+  let total = 0;
+  snapshot.forEach(doc => {
+    const d = doc.data();
+    if (d.data.startsWith(mesAtual)) total += d.valor;
+  });
+  document.getElementById("monthlyTotal").innerHTML = `<h3>Total do mês: R$${total.toFixed(2)}</h3>`;
+}
+
+async function corrigir(id, valorAntigo) {
+  const { value: novo } = await Swal.fire({
+    title: `Atual: R$${valorAntigo}`,
+    input: 'text',
+    inputPlaceholder: 'Novo valor',
+    showCancelButton: true
+  });
+  if (!novo) return;
+  const parsed = parseFloat(novo.replace(",", "."));
+  if (isNaN(parsed)) {
+    Swal.fire("Erro", "Valor inválido!", "error");
+    return;
+  }
+  await db.collection("registros").doc(id).update({ valor: parsed });
+  renderCalendar();
+}
+
+async function excluir(id) {
+  if (await Swal.fire({ title: "Confirma exclusão?", icon: "warning", showCancelButton: true })) {
+    await db.collection("registros").doc(id).delete();
+    renderCalendar();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+  updateThemeIcon();
+  renderCalendar();
+
+  // 🕒 Verifica automaticamente todo dia
+  setInterval(() => {
+    const realMonth = moment().format("YYYY-MM");
+    if (currentMonth.format("YYYY-MM") !== realMonth) {
+      currentMonth = moment();
+      renderCalendar();
+    }
+  }, 3600000); // 1 hora
+});
+
+
+const themeBtn = document.getElementById("toggleThemeBtn");
+themeBtn.onclick = () => {
+  document.body.classList.toggle("dark");
+  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+  updateThemeIcon();
+};
+
+function updateThemeIcon() {
+  if (document.body.classList.contains("dark")) {
+    themeBtn.textContent = "☀️ Alternar Tema";
+  } else {
+    themeBtn.textContent = "🌙 Alternar Tema";
+  }
+}

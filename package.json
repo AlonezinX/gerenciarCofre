@@ -1,0 +1,13 @@
+{
+  "name": "cofre-app",
+  "version": "1.0.0",
+  "description": "Gerenciador de Cofre Físico",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "firebase-admin": "^11.0.0"
+  }
+}

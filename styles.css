@@ -1,0 +1,180 @@
+:root {
+  --bg: #f4f6f9;
+  --text: #333;
+  --card-bg: #fff;
+  --card-border: #ddd;
+  --button-bg: #4CAF50;
+  --button-hover: #45a049;
+  --goal-bg: #ddd;
+  --goal-inner: #4CAF50;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+  padding: 20px;
+  text-align: center;
+}
+
+h1 {
+  font-size: 2.4rem;
+}
+
+h2 {
+  font-size: 2.4rem;
+}
+
+.buttons {
+  margin: 10px 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+button {
+  background: var(--button-bg);
+  border: none;
+  color: white;
+  padding: 16px 24px;
+  margin: 5px;
+  border-radius: 6px;
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background: var(--button-hover);
+}
+
+#calendar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  max-width: 1000px;
+  margin: 20px auto;
+}
+
+.day {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 12px 8px;
+  min-height: 90px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.day:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  cursor: pointer;
+}
+
+.day.has-value {
+  background: #e0f7e9;
+  border-color: var(--button-bg);
+}
+
+.day-week {
+  font-size: 0.6rem;
+  color: #555;
+}
+
+.day-number {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.day-total {
+  margin-top: 6px;
+  color: #2e7d32;
+  font-size: 0.6rem;
+}
+
+#monthlyTotal {
+  margin: 20px auto;
+  font-size: 0.9rem;
+}
+
+#goalSection {
+  margin: 20px auto;
+  max-width: 500px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.goal-bar {
+  background: var(--goal-bg);
+  border-radius: 20px;
+  overflow: hidden;
+  height: 24px;
+  margin-top: 12px;
+}
+
+.goal-bar-inner {
+  height: 100%;
+  background: var(--goal-inner);
+  width: 0%;
+  transition: width 0.5s ease;
+}
+
+#log {
+  margin: 30px auto;
+  max-width: 1000px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 24px;
+  text-align: left;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+#log p {
+  font-size: 1.2rem;
+}
+#log h3 {
+  font-size: 1.4rem;
+}
+
+
+#log button {
+  background: #f44336;
+}
+
+#log button:hover {
+  background: #d32f2f;
+}
+
+/* Dark Mode */
+body.dark {
+  --bg: #121212;
+  --text: #eee;
+  --card-bg: #1f1f1f;
+  --card-border: #333;
+  --button-bg: #2196F3;
+  --button-hover: #1976D2;
+  --goal-bg: #333;
+  --goal-inner: #2196F3;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  h1 { font-size: 1.8rem; }
+  h2 { font-size: 1.2rem; }
+  button { width: 100%; margin: 8px 0; }
+  #calendar { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 480px) {
+  #calendar { grid-template-columns: repeat(2, 1fr); }
+  button { font-size: 1rem; }
+  h1 { font-size: 2.8rem; }
+}
