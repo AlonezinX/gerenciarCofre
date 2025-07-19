@@ -178,3 +178,36 @@ body.dark {
   button { font-size: 1rem; }
   h1 { font-size: 2.8rem; }
 }
+
+@media (max-width: 375px) {
+  /* Ajuste do tamanho dos textos dentro do calendário */
+
+  .day-week {
+    font-size: 0.65rem; /* Dias da semana (Dom, Seg, etc.) */
+  }
+
+  .day-total {
+    font-size: 0.6rem; /* Valor em cada dia */
+  }
+
+  .day-number {
+    font-size: 0.95rem; /* Número do dia */
+  }
+
+  button {
+    font-size: 1.2rem; /* Botões de navegação */
+    padding: 12px;
+  }
+
+  h2 {
+    font-size: 1.4rem; /* Nome do mês e valor total do mês */
+  }
+
+  #calendar {
+    grid-template-columns: repeat(3, 1fr); /* 3 colunas por linha, adaptável */
+  }
+
+  .log-item {
+    font-size: 0.95rem; /* Texto da aba de log */
+  }
+}
